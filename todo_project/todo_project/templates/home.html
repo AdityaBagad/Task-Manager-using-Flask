@@ -1,5 +1,17 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
+<h1>{{ title }}</h1>
+{% endblock %}
+
+<!-- Labels -->
+{% block labels %}
+<div class="content-section">
+    <h3>Labels</h3>
+    <ul class="list-group">
+        {% for label in labels %}
+        <li class="list-group-item list-group-item">{{ label }}</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
