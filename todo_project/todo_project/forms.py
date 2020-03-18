@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 
 # Form Validators for Form fields
-from wtforms.validators import DataRequired, EqualTo, Length
+from wtforms.validators import DataRequired, EqualTo, Length, ValidationError
 
 # Import the User Database Model
 from todo_project.models import User
@@ -29,8 +29,19 @@ class LoginForm(FlaskForm):
     password = PasswordField(label='Password', validators=[DataRequired()])
     submit = SubmitField(label='Login')
 
-class UpdateuserForm(FlaskForm):
+class UpdateUserInfoForm(FlaskForm):
     username = StringField(label='Username', validators=[DataRequired(), Length(min=3, max=10)])
-    password = PasswordField(label='Password', validators=[DataRequired()])
     submit = SubmitField(label='Update Info')
 
+    # Check wheather user already exists in the Database
+    def validate_username(self, username):
+        if username.data != current_user.username:    
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError('Username Exists')
+
+
+class UpdateUserPassword(FlaskForm):
+    old_password = PasswordField(label='Enter Old Password', validators=[DataRequired()])
+    new_password = PasswordField(label='Enter New Password', validators=[DataRequired()])
+    submit = SubmitField(label='Change password')

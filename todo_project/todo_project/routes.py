@@ -3,7 +3,7 @@ from flask import render_template, url_for, flash, redirect, request, abort
 from todo_project import app, db, bcrypt
 
 # Import the forms
-from todo_project.forms import LoginForm, RegistrationForm, UpdateuserForm
+from todo_project.forms import LoginForm, RegistrationForm, UpdateUserInfoForm, UpdateUserPassword
 
 # Import the Models
 from todo_project.models import User, Task
@@ -26,12 +26,13 @@ def error_500(error):
     return (render_template('errors/500.html'), 500)
 
 
-@app.route("/")
+
 @app.route("/home")
 def home():
-    return render_template('home.html', title='Home')
+    return render_template('home.html', title='Home', labels=labels)
 
 
+@app.route("/")
 @app.route("/about")
 def about():
     return render_template('about.html', title='About')
@@ -82,7 +83,37 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route("/account")
+@app.route("/account", methods=['POST', 'GET'])
 @login_required
 def account():
-    return render_template('account.html', title='User Page', labels=labels)
+    form = UpdateUserInfoForm()
+
+    if form.validate_on_submit():
+        if form.username.data != current_user.username:  
+            current_user.username = form.username.data
+            db.session.commit()
+            flash('Username Updated Successfully', 'success')
+            return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username 
+
+    return render_template('account.html', title='Account Settings', form=form)
+
+
+@app.route("/account/change_password", methods=['POST', 'GET'])
+@login_required
+def change_password():
+    form = UpdateUserPassword()
+
+    if form.validate_on_submit():
+        if bcrypt.check_password_hash(current_user.password, form.old_password.data):
+            current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+            db.session.commit()
+            flash('Password Changed Successfully', 'success')
+            redirect(url_for('account'))
+        else:
+            flash('Please Enter Correct Password', 'danger') 
+            # redirect(url_for('/account/change_password'))
+
+    return render_template('change_password.html', title='Change Password', form=form)
+
