@@ -3,7 +3,8 @@ from flask import render_template, url_for, flash, redirect, request, abort
 from todo_project import app, db, bcrypt
 
 # Import the forms
-from todo_project.forms import LoginForm, RegistrationForm, UpdateUserInfoForm, UpdateUserPassword
+from todo_project.forms import (LoginForm, RegistrationForm, UpdateUserInfoForm, 
+                                UpdateUserPassword, TaskForm)
 
 # Import the Models
 from todo_project.models import User, Task
@@ -17,19 +18,27 @@ labels = ['Work', 'Study', 'Sports']
 def error_404(error):
     return (render_template('errors/404.html'), 404)
 
+
 @app.errorhandler(403)
 def error_403(error):
     return (render_template('errors/403.html'), 403)
+
 
 @app.errorhandler(500)
 def error_500(error):
     return (render_template('errors/500.html'), 500)
 
 
-
-@app.route("/home")
+@app.route("/home", methods=['POST', 'GET'])
 def home():
-    return render_template('home.html', title='Home', labels=labels)
+    form = TaskForm()
+    if form.validate_on_submit():
+        task = Task(content=form.task_name.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post Created', 'success')
+        return redirect(url_for('home'))
+    return render_template('home.html', title='Home', form=form)
 
 
 @app.route("/")
