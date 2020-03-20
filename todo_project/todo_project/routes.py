@@ -12,33 +12,18 @@ from todo_project.models import User, Task
 # Import 
 from flask_login import login_required, current_user, login_user, logout_user
 
-labels = ['Work', 'Study', 'Sports']
 
 @app.errorhandler(404)
 def error_404(error):
     return (render_template('errors/404.html'), 404)
 
-
 @app.errorhandler(403)
 def error_403(error):
     return (render_template('errors/403.html'), 403)
 
-
 @app.errorhandler(500)
 def error_500(error):
     return (render_template('errors/500.html'), 500)
-
-
-@app.route("/home", methods=['POST', 'GET'])
-def home():
-    form = TaskForm()
-    if form.validate_on_submit():
-        task = Task(content=form.task_name.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Post Created', 'success')
-        return redirect(url_for('home'))
-    return render_template('home.html', title='Home', form=form)
 
 
 @app.route("/")
@@ -50,37 +35,30 @@ def about():
 @app.route("/login", methods=['POST', 'GET'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('all_tasks'))
 
     form = LoginForm()
-    
     # After you submit the form
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         # Check if the user exists and the password is valid
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user)
+            task_form = TaskForm()
             flash('Login Successfull', 'success')
-            return render_template('home.html', title='Home Page', labels=labels)
+            return redirect(url_for('all_tasks'))
         else:
             flash('Login Unsuccessful. Please check Username Or Password', 'danger')
     
     return render_template('login.html', title='Login', form=form)
     
 
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
-
 @app.route("/register", methods=['POST', 'GET'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('all_tasks'))
 
     form = RegistrationForm()
-
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         user = User(username=form.username.data, password=hashed_password)
@@ -92,11 +70,36 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
+@app.route("/add_task", methods=['POST', 'GET'])
+@login_required
+def add_task():
+    form = TaskForm()
+    if form.validate_on_submit():
+        task = Task(content=form.task_name.data, author=current_user)
+        db.session.add(task)
+        db.session.commit()
+        flash('Task Created', 'success')
+        return redirect(url_for('all_tasks'))
+    return render_template('add_task.html', form=form)
+
+
+@app.route("/all_tasks")
+@login_required
+def all_tasks():
+    tasks = User.query.filter_by(username=current_user.username).first().tasks
+    return render_template('all_tasks.html', title='All Tasks', tasks=tasks)
+
+
 @app.route("/account", methods=['POST', 'GET'])
 @login_required
 def account():
     form = UpdateUserInfoForm()
-
     if form.validate_on_submit():
         if form.username.data != current_user.username:  
             current_user.username = form.username.data
@@ -113,7 +116,6 @@ def account():
 @login_required
 def change_password():
     form = UpdateUserPassword()
-
     if form.validate_on_submit():
         if bcrypt.check_password_hash(current_user.password, form.old_password.data):
             current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
@@ -122,7 +124,6 @@ def change_password():
             redirect(url_for('account'))
         else:
             flash('Please Enter Correct Password', 'danger') 
-            # redirect(url_for('/account/change_password'))
 
     return render_template('change_password.html', title='Change Password', form=form)
 

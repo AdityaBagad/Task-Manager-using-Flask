@@ -50,5 +50,5 @@ class UpdateUserPassword(FlaskForm):
 
 
 class TaskForm(FlaskForm):
-    task_name = TextAreaField(label='Task Description', validators=[DataRequired()])
+    task_name = StringField(label='Task Description', validators=[DataRequired()])
     submit = SubmitField(label='Add Task')
