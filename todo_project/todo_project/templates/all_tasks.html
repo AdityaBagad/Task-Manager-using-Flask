@@ -3,25 +3,37 @@
 {% block content %}
 
 <!-- View All Tasks -->
+{% if tasks %}
 <table class="table table-bordered">
     <thead>
         <tr class="text-center">
             <th scope="col">#</th>
-            <th scope="col">Task</th>
-            <th scope="col">Update</th>
-            <th scope="col">Delete</th>
+            <th scope="col" style="vertical-align: middle;">Task</th>
+            <th scope="col" style="width: 90px;">Update</th>
+            <th scope="col" style="width: 90px;">Delete</th>
         </tr>
     </thead>
     <tbody>
         {% for task in tasks %}
-            <tr>
-                <th scope="row" class="text-center">1</th>
-                <td>{{ task.content }}</td>
-                <td class="text-center">Otto</td>
-                <td class="text-center">@mdo</td>
-            </tr>
+        <tr>
+            <th scope="row" class="text-center">{{ loop.index }}</th>
+            <td>{{ task.content }}</td>
+            <td class="text-center">
+                <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-outline-secondary btn-sm">Update</a>
+            </td>
+            
+            <td class="text-center">
+                <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-outline-danger btn-sm">Delete</a>
+            </td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<legend>No Tasks to Display</legend>
+<p class="text-muted">
+    Click <a href="{{ url_for('add_task') }}">here</a> to Add Task
+</p>
+{% endif %}
 
 {% endblock %}
