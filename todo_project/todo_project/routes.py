@@ -102,10 +102,14 @@ def update_task(task_id):
     task = Task.query.get_or_404(task_id)
     form = UpdateTaskForm()
     if form.validate_on_submit():
-        task.content = form.task_name.data
-        db.session.commit()
-        flash('Task Updated', 'success')
-        return redirect(url_for('all_tasks'))
+        if form.task_name.data != task.content:
+            task.content = form.task_name.data
+            db.session.commit()
+            flash('Task Updated', 'success')
+            return redirect(url_for('all_tasks'))
+        else:
+            flash('No Changes Made', 'warning')
+            return redirect(url_for('all_tasks'))
     elif request.method == 'GET':
         form.task_name.data = task.content
     return render_template('add_task.html', title='Update Task', form=form)
